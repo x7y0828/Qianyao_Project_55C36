@@ -1,0 +1,21 @@
+import numpy as np
+
+###Step1: Generate Noisy Images###
+# make image
+def make_image(seed, size=96, sigma=0.1):       #seed-固定随机生成结果，方便复现实验 sigma-高斯噪声标准差，控制噪声强度
+    rng = np.random.default_rng(seed)
+    clean = np.full((size, size), 0.15)
+    yy, xx = np.mgrid[:size, :size]
+    for _ in range(4):
+        row, col = rng.integers(0, size-20, size=2)
+        height, width = rng.integers(10, 22, size=2)
+        clean[row:row+height, col:col+width] = (
+            rng.uniform(0.3, 0.9))
+    for _ in range(2):
+        cy, cx = rng.integers(15, size-15, size=2)
+        radius = rng.integers(6, 14)
+        mask = (yy-cy)**2 + (xx-cx)**2 < radius**2
+        clean[mask] = rng.uniform(0.3, 0.9)
+
+    noisy = clean + sigma*rng.normal(size=clean.shape)
+    return clean, noisy
