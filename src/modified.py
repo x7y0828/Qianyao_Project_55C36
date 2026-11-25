@@ -16,4 +16,8 @@ def estimate_sigma(noisy):
 
     return mad / 0.67449        # convert MAD to an estimate of standard deviation of Gaussion noise 将MAD转换为高斯噪声标准差的估计值
 
-
+# calculate adaptive regularization parameter
+def adaptive_lambda(noisy, alpha=10.0):
+    sigma_est = estimate_sigma(noisy)
+    lam = alpha * sigma_est**2
+    return max(lam, 1e-8)       # avoid lam=0

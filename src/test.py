@@ -2,7 +2,7 @@ import numpy as np
 from src.operators import grad, div
 from src.baseline import chambolle, objective
 from src.data import make_image
-from src.modified import estimate_sigma
+from src.modified import estimate_sigma, adaptive_lambda
 
 ##Test for Step 2###
 # Test 1: Gradient of a constant image
@@ -93,3 +93,30 @@ for sigma in [0.05, 0.1, 0.2]:
     print("Absolute error:", error)
     print("Relative error:", relative_error)
     print("--------------------")
+
+# Test 2: Adaptive regularization parameter
+lambda_values = []
+
+for sigma in [0.05, 0.1, 0.2]:
+    clean, noisy = make_image(seed=42, sigma=sigma)
+
+    lam = adaptive_lambda(noisy, alpha=10.0)
+    lambda_values.append(lam)
+
+    print("True sigma:", sigma)
+    print("Adaptive lambda:", lam)
+
+    assert np.isfinite(lam)
+    assert lam > 0
+    assert np.isclose(
+        lam, max(10.0 * estimate_sigma(noisy)**2, 1e-8)
+    )
+
+# Check increasing regularization strength
+assert lambda_values[0] < lambda_values[1] < lambda_values[2]
+
+# Check zero-noise limiting case
+constant = np.full((96, 96), 0.5)
+assert adaptive_lambda(constant) == 1e-8
+
+print("Adaptive lambda tests passed!")
