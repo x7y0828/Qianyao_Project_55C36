@@ -5,6 +5,7 @@ from src.data import make_image
 from src.operators import grad, div
 from src.baseline import chambolle
 from src.modified import adaptive_chambolle
+from src.metrics import mse, psnr
 
 
 def main():
@@ -46,13 +47,17 @@ def main():
     # plt.show()
     
     # 261125xqy Step 3
-    mse_noisy = np.mean((noisy - clean) ** 2)
-    mse_denoised = np.mean((denoised - clean) ** 2)
-    mse_adaptive = np.mean((denoised_adaptive - clean)**2)
+    mse_noisy = mse(noisy, clean)
+    mse_denoised = mse(denoised, clean)
+    mse_adaptive = mse(denoised_adaptive, clean)
 
     print("Noisy MSE:", mse_noisy)
     print("Denoised MSE:", mse_denoised)
     print("Adaptive MSE:", mse_adaptive)
+    # Step5, add PSNR output
+    print("Noisy PSNR:", psnr(noisy, clean))
+    print("Baseline PSNR:", psnr(denoised, clean))
+    print("Adaptive PSNR:", psnr(denoised_adaptive, clean))
 
     plt.show()
 

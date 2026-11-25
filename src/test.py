@@ -3,6 +3,7 @@ from src.operators import grad, div
 from src.baseline import chambolle, objective
 from src.data import make_image
 from src.modified import estimate_sigma, adaptive_lambda, adaptive_chambolle
+from src.metrics import mse, psnr
 
 ##Test for Step 2###
 # Test 1: Gradient of a constant image
@@ -153,3 +154,23 @@ for sigma in [0.05, 0.1, 0.2]:
     assert mse_adaptive < mse_noisy
 
 print("All adaptive algorithm tests passed!")
+
+###Test for Step 5###
+
+# Test 1: Identical images
+u = np.ones((5, 5))
+
+assert mse(u, u) == 0
+assert np.isinf(psnr(u, u))
+
+# Test 2: Known reconstruction error
+clean = np.ones((5, 5))
+u = np.full((5, 5), 0.9)
+
+print("Test MSE:", mse(u, clean))
+print("Test PSNR:", psnr(u, clean))
+
+assert np.isclose(mse(u, clean), 0.01)
+assert np.isclose(psnr(u, clean), 20.0)
+
+print("All metric tests passed!")
