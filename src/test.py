@@ -2,7 +2,7 @@ import numpy as np
 from src.operators import grad, div
 from src.baseline import chambolle, objective
 from src.data import make_image
-from src.modified import estimate_sigma, adaptive_lambda
+from src.modified import estimate_sigma, adaptive_lambda, adaptive_chambolle
 
 ##Test for Step 2###
 # Test 1: Gradient of a constant image
@@ -120,3 +120,36 @@ constant = np.full((96, 96), 0.5)
 assert adaptive_lambda(constant) == 1e-8
 
 print("Adaptive lambda tests passed!")
+
+# Test 3: Constant image preservation
+constant = np.full((96, 96), 0.5)
+
+result, lam = adaptive_chambolle(constant)
+
+print("Adaptive constant image error:",
+      np.max(np.abs(result - constant)))
+
+assert np.allclose(result, constant)
+
+# Test 4: Mean preservation and MSE comparison
+for sigma in [0.05, 0.1, 0.2]:
+    clean, noisy = make_image(seed=42, sigma=sigma)
+
+    denoised, lam = adaptive_chambolle(noisy)
+
+    mean_error = abs(np.mean(noisy) - np.mean(denoised))
+
+    mse_noisy = np.mean((noisy - clean)**2)
+    mse_adaptive = np.mean((denoised - clean)**2)
+
+    print("True sigma:", sigma)
+    print("Adaptive lambda:", lam)
+    print("Mean difference:", mean_error)
+    print("Noisy MSE:", mse_noisy)
+    print("Adaptive MSE:", mse_adaptive)
+    print("--------------------")
+
+    assert np.allclose(np.mean(noisy), np.mean(denoised))
+    assert mse_adaptive < mse_noisy
+
+print("All adaptive algorithm tests passed!")
