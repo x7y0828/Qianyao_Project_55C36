@@ -4,7 +4,7 @@ from src.baseline import chambolle
 ###Step 4: Noise-adaptive Regularisation###
 # estimate noise standard deviation
 # Median Absolute Deviation 中位数绝对偏差
-def estimate_sigma(noisy):
+def estimate_sigma(noisy):      #估计噪声强度
     usable = 2 * (noisy.shape[1] // 2)      # ensure the number of columns included is even 确保参与计算的列数为偶数
 
     differences = (
@@ -17,7 +17,17 @@ def estimate_sigma(noisy):
     return mad / 0.67449        # convert MAD to an estimate of standard deviation of Gaussion noise 将MAD转换为高斯噪声标准差的估计值
 
 # calculate adaptive regularization parameter
-def adaptive_lambda(noisy, alpha=10.0):
+def adaptive_lambda(noisy, alpha=10.0):     #根据噪声强度计算正则化参数
     sigma_est = estimate_sigma(noisy)
     lam = alpha * sigma_est**2
     return max(lam, 1e-8)       # avoid lam=0
+
+# noise-adaptive TV denoising
+def adaptive_chambolle(noisy, alpha=10.0, tau=1/8, max_iter=200):
+    lam = adaptive_lambda(noisy, alpha)
+
+    denoised = chambolle(
+        noisy, lam=lam, tau=tau, max_iter=max_iter
+    )
+
+    return denoised, lam
