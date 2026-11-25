@@ -6,14 +6,19 @@ from src.operators import grad, div
 from src.baseline import chambolle
 from src.modified import adaptive_chambolle
 from src.metrics import mse, psnr
+import time
 
 
 def main():
     # display image
     clean, noisy = make_image(seed=42, sigma=0.1)
 
+    # calculate time
+    start = time.perf_counter()
     # 261125xqy Chambolle Baseline
     denoised = chambolle(noisy, lam=0.1, max_iter=200)
+
+    runtime_baseline = time.perf_counter() - start      # calculate time
 
     print("Image shape:", clean.shape)
     print("Clean range:", clean.min(), clean.max())
@@ -23,6 +28,8 @@ def main():
     denoised_adaptive, lam_adaptive = adaptive_chambolle(
         noisy, alpha=10.0, max_iter=200
     )
+
+    runtime_adaptive = time.perf_counter() - start      # calculate time
 
     print("Adaptive lambda:", lam_adaptive)
 
@@ -58,6 +65,9 @@ def main():
     print("Noisy PSNR:", psnr(noisy, clean))
     print("Baseline PSNR:", psnr(denoised, clean))
     print("Adaptive PSNR:", psnr(denoised_adaptive, clean))
+    # Step5, print time
+    print("Baseline runtime:", runtime_baseline, "s")
+    print("Adaptive runtime:", runtime_adaptive, "s")
 
     plt.show()
 
