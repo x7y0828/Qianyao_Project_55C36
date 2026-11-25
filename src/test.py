@@ -2,6 +2,7 @@ import numpy as np
 from src.operators import grad, div
 from src.baseline import chambolle, objective
 from src.data import make_image
+from src.modified import estimate_sigma
 
 ##Test for Step 2###
 # Test 1: Gradient of a constant image
@@ -75,3 +76,20 @@ print("Denoised MSE:", mse_denoised)
 
 assert mse_denoised < mse_noisy
 print("All baseline tests passed!")
+
+###Test for Step4###
+### Test for Step 4 ###
+
+# Test 1: Noise estimation accuracy
+for sigma in [0.05, 0.1, 0.2]:
+    clean, noisy = make_image(seed=42, sigma=sigma)
+
+    sigma_est = estimate_sigma(noisy)
+    error = abs(sigma_est - sigma)
+    relative_error = error / sigma
+
+    print("True sigma:", sigma)
+    print("Estimated sigma:", sigma_est)
+    print("Absolute error:", error)
+    print("Relative error:", relative_error)
+    print("--------------------")
