@@ -3,7 +3,7 @@ from src.operators import grad, div
 from src.baseline import chambolle, objective
 from src.data import make_image
 from src.modified import estimate_sigma, adaptive_lambda, adaptive_chambolle
-from src.metrics import mse, psnr
+from src.metrics import mse, psnr, gradient_mse
 
 ##Test for Step 2###
 # Test 1: Gradient of a constant image
@@ -174,3 +174,16 @@ assert np.isclose(mse(u, clean), 0.01)
 assert np.isclose(psnr(u, clean), 20.0)
 
 print("All metric tests passed!")
+
+# Test 3: Gradient MSE
+clean = np.zeros((5, 5))
+clean[:, 2:] = 1.0
+
+assert gradient_mse(clean, clean) == 0
+
+blurred = clean * 0.5
+
+assert np.isclose(gradient_mse(blurred, clean), 0.05)
+
+print("Gradient MSE:", gradient_mse(blurred, clean))
+print("Gradient MSE tests passed!")

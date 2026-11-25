@@ -5,7 +5,7 @@ from src.data import make_image
 from src.operators import grad, div
 from src.baseline import chambolle
 from src.modified import adaptive_chambolle
-from src.metrics import mse, psnr
+from src.metrics import mse, psnr, gradient_mse
 import time
 
 
@@ -68,6 +68,10 @@ def main():
     # Step5, print time
     print("Baseline runtime:", runtime_baseline, "s")
     print("Adaptive runtime:", runtime_adaptive, "s")
+
+    print("Noisy Gradient MSE:",gradient_mse(noisy, clean))
+    print("Baseline Gradient MSE:",gradient_mse(denoised, clean))
+    print("Adaptive Gradient MSE:",gradient_mse(denoised_adaptive, clean))
 
     plt.show()
 
