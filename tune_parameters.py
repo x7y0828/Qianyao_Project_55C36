@@ -39,3 +39,36 @@ best_lambda = max(baseline_results, key=baseline_results.get)
 
 print("Best lambda:", best_lambda)
 print("Best mean PSNR:", baseline_results[best_lambda])
+
+# adaptive parameter tuning
+adaptive_results = {}
+
+for alpha in alpha_candidates:
+    scores = []
+
+    for sigma in noise_levels:
+        for seed in validation_seeds:
+            clean, noisy = make_image(seed=seed, sigma=sigma)
+
+            denoised, lam = adaptive_chambolle(
+                noisy, alpha=alpha, max_iter=max_iter
+            )
+
+            scores.append(psnr(denoised, clean))
+
+    adaptive_results[alpha] = np.mean(scores)
+
+    print("Alpha:", alpha,
+          "Mean PSNR:", adaptive_results[alpha])
+
+best_alpha = max(adaptive_results, key=adaptive_results.get)
+
+print("Best alpha:", best_alpha)
+print("Best mean PSNR:", adaptive_results[best_alpha])
+
+# parameter tuning summary
+print("\nParameter tuning summary")
+print("Best baseline lambda:", best_lambda)
+print("Best adaptive alpha:", best_alpha)
+print("Baseline validation PSNR:", baseline_results[best_lambda])
+print("Adaptive validation PSNR:", adaptive_results[best_alpha])
