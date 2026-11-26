@@ -16,6 +16,22 @@ max_iter = 200
 
 results = []
 
+# Runtime measurement with warm-up  自行设定预热1次、正式测量5次，取平均，减少单次测量偶然误差
+def measure_runtime(func, *args, repeats=5, **kwargs):
+    # Warm-up
+    func(*args, **kwargs)
+
+    times = []
+
+    for _ in range(repeats):
+        start = time.perf_counter()
+        func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+
+        times.append(elapsed)
+
+    return np.mean(times)
+
 # paired experiments 实现配对实验
 for sigma in noise_levels:
     for seed in test_seeds:
@@ -29,6 +45,17 @@ for sigma in noise_levels:
         # Adaptive
         denoised_adaptive, lam = adaptive_chambolle(
             noisy, alpha=best_alpha, max_iter=max_iter
+        )
+
+        # Runtime measurement
+        runtime_baseline = measure_runtime(
+            chambolle, noisy,
+            lam=best_lambda, max_iter=max_iter
+        )
+
+        runtime_adaptive = measure_runtime(
+            adaptive_chambolle, noisy,
+            alpha=best_alpha, max_iter=max_iter
         )
 
         # Record evaluation metrics
@@ -45,6 +72,11 @@ for sigma in noise_levels:
             "noisy_psnr": psnr(noisy, clean),
             "baseline_psnr": psnr(denoised_baseline, clean),
             "adaptive_psnr": psnr(denoised_adaptive, clean),
+
+            "baseline_runtime": runtime_baseline,
+            "adaptive_runtime": runtime_adaptive,
+            "baseline_iterations": max_iter,
+            "adaptive_iterations": max_iter,
 
             "noisy_gradient_mse": gradient_mse(noisy, clean),
             "baseline_gradient_mse": gradient_mse(
@@ -66,7 +98,8 @@ for sigma in noise_levels:
     print("\nNoise level:", sigma)
     print("Number of cases:", len(cases))
 
-    for metric in ["mse", "psnr", "gradient_mse"]:
+    # for metric in ["mse", "psnr", "gradient_mse"]:
+    for metric in ["mse", "psnr", "gradient_mse", "runtime"]:
         baseline = np.array([
             r["baseline_" + metric] for r in cases
         ])
