@@ -19,3 +19,21 @@ def make_image(seed, size=96, sigma=0.1):       #seed-固定随机生成结果�
 
     noisy = clean + sigma*rng.normal(size=clean.shape)
     return clean, noisy
+
+# generate textured stress image
+def make_stress_image(seed, size=96, sigma=0.1):
+    clean, noisy = make_image(seed, size, sigma)
+
+    # preserve the original Gaussian noise
+    noise = noisy - clean       #提取原来的高斯噪声
+
+    # generate checkerboard texture
+    yy, xx = np.mgrid[:32, :32]
+    checkerboard = (yy + xx) % 2        #生成交替排列的0和1
+
+    # add texture to a local region
+    clean[32:64, 32:64] = 0.3 + 0.4 * checkerboard      #在图像中央加入32×32的纹理区域
+
+    noisy = clean + noise       #重新叠加高斯噪声
+
+    return clean, noisy
