@@ -58,3 +58,49 @@ for sigma in noise_levels:
     print("Completed noise level:", sigma)
 
 print("Total paired cases:", len(results))
+
+# statistical analysis
+for sigma in noise_levels:
+    cases = [r for r in results if r["sigma"] == sigma]
+
+    print("\nNoise level:", sigma)
+    print("Number of cases:", len(cases))
+
+    for metric in ["mse", "psnr", "gradient_mse"]:
+        baseline = np.array([
+            r["baseline_" + metric] for r in cases
+        ])
+
+        adaptive = np.array([
+            r["adaptive_" + metric] for r in cases
+        ])
+
+        print("\nMetric:", metric)
+
+        print("Baseline mean:", np.mean(baseline))
+        print("Baseline std:", np.std(baseline, ddof=1))
+
+        print("Adaptive mean:", np.mean(adaptive))
+        print("Adaptive std:", np.std(adaptive, ddof=1))
+
+        # Paired improvement
+        if metric == "psnr":
+            difference = adaptive - baseline
+        else:
+            difference = baseline - adaptive
+
+        mean_diff = np.mean(difference)
+        std_diff = np.std(difference, ddof=1)
+
+        # 95% confidence interval (n = 20)
+        margin = 2.093 * std_diff / np.sqrt(len(difference))
+
+        print("Mean improvement:", mean_diff)
+        print("95% CI:",
+              mean_diff - margin,
+              mean_diff + margin)
+
+        print("Adaptive win rate:",
+              np.mean(difference > 0) * 100, "%")
+
+        
