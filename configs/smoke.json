@@ -1,0 +1,11 @@
+{
+    "noise_levels": [0.05, 0.1, 0.2],
+    "test_seed_start": 200,
+    "test_seed_end": 202,
+    "image_size": 96,
+    "best_lambda": 0.15,
+    "best_alpha": 15.0,
+    "max_iter": 200,
+    "runtime_warmup": 1,
+    "runtime_repeats": 1
+}
