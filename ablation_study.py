@@ -5,6 +5,9 @@ from src.baseline import chambolle
 from src.modified import adaptive_chambolle
 from src.metrics import mse, psnr, gradient_mse
 
+import csv
+from pathlib import Path
+
 # 不再使用 MAD 估计 σ，而是直接使用已知的真实 σ
 def oracle_chambolle(noisy, sigma, alpha=15, max_iter=200):
     lam = max(alpha * sigma**2, 1e-6)
@@ -17,6 +20,8 @@ def oracle_chambolle(noisy, sigma, alpha=15, max_iter=200):
 
 def main():
     noise_levels = [0.05, 0.1, 0.2]
+
+    ablation_results = []
 
     for sigma in noise_levels:
         scores = {
@@ -50,6 +55,20 @@ def main():
         for name, values in scores.items():
             print(name, "mean PSNR:", np.mean(values))
 
+        ablation_results.append({
+            "sigma": sigma,
+            "baseline_psnr": np.mean(scores["Baseline"]),
+            "adaptive_psnr": np.mean(scores["Adaptive"]),
+            "oracle_psnr": np.mean(scores["Oracle"])
+        })
+
+    output_dir = Path("results")
+    output_dir.mkdir(exist_ok=True)
+
+    with open(output_dir / "ablation_results.csv","w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=ablation_results[0].keys())
+        writer.writeheader()
+        writer.writerows(ablation_results)
 
 if __name__ == "__main__":
     main()
