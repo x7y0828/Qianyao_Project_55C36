@@ -9,20 +9,63 @@ from src.metrics import mse, psnr, gradient_mse
 import csv
 from pathlib import Path
 
-# final experiment settings
-noise_levels = [0.05, 0.1, 0.2]
-test_seeds = range(200, 220)
+import json
+import argparse
 
-best_lambda = 0.15
-best_alpha = 15.0
-max_iter = 200
+# # final experiment settings
+# noise_levels = [0.05, 0.1, 0.2]
+# test_seeds = range(200, 220)
+
+# best_lambda = 0.15
+# best_alpha = 15.0
+# max_iter = 200
+
+# Load experiment configuration
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+    "--config",
+    default="configs/final.json"
+)
+
+args = parser.parse_args()
+
+with open(args.config, "r", encoding="utf-8") as f:
+    config = json.load(f)
+
+# 261126 experiment settings
+noise_levels = config["noise_levels"]
+
+test_seeds = range(
+    config["test_seed_start"],
+    config["test_seed_end"]
+)
+
+best_lambda = config["best_lambda"]
+best_alpha = config["best_alpha"]
+max_iter = config["max_iter"]
+
+image_size = config["image_size"]
+runtime_warmup = config["runtime_warmup"]
+runtime_repeats = config["runtime_repeats"]
+
+print("Configuration:", args.config)
+
+# select output directory
+if Path(args.config).stem == "smoke":
+    output_dir = Path("results/smoke")
+else:
+    output_dir = Path("results")
+
+output_dir.mkdir(parents=True, exist_ok=True)
 
 results = []
 
 # save data
 def save_csv(results, filename):
-    output_dir = Path("results")        #指定结果保存目录
-    output_dir.mkdir(exist_ok=True)     #如果文件夹不存在则自动创建
+    # 261126 已经在外部根据配置文件设置了output_dir
+    # output_dir = Path("results")        #指定结果保存目录
+    # output_dir.mkdir(exist_ok=True)     #如果文件夹不存在则自动创建
 
     filepath = output_dir / filename
 
@@ -36,9 +79,11 @@ def save_csv(results, filename):
     print("Results saved to:", filepath)
 
 # Runtime measurement with warm-up  自行设定预热1次、正式测量5次，取平均，减少单次测量偶然误差
-def measure_runtime(func, *args, repeats=5, **kwargs):
+def measure_runtime(func, *args, repeats=runtime_repeats, **kwargs):    #5改为runtime_repeats
     # Warm-up
-    func(*args, **kwargs)
+    # func(*args, **kwargs)
+    for _ in range(runtime_warmup):
+        func(*args, **kwargs)
 
     times = []
 
@@ -54,7 +99,8 @@ def measure_runtime(func, *args, repeats=5, **kwargs):
 # paired experiments 实现配对实验
 for sigma in noise_levels:
     for seed in test_seeds:
-        clean, noisy = make_image(seed=seed, sigma=sigma)
+        # clean, noisy = make_image(seed=seed, sigma=sigma)
+        clean, noisy = make_image(seed=seed,size=image_size,sigma=sigma)
 
         # Baseline
         denoised_baseline = chambolle(
@@ -149,7 +195,15 @@ for sigma in noise_levels:
         std_diff = np.std(difference, ddof=1)
 
         # 95% confidence interval (n = 20)
-        margin = 2.093 * std_diff / np.sqrt(len(difference))
+        # margin = 2.093 * std_diff / np.sqrt(len(difference))
+        n = len(difference)
+        if n == 20:
+            t_critical = 2.093
+        elif n == 2:
+            t_critical = 12.706
+        else:
+            raise ValueError("Unsupported sample size")
+        margin = t_critical * std_diff / np.sqrt(n)
 
         print("Mean improvement:", mean_diff)
         print("95% CI:",
