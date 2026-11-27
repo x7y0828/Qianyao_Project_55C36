@@ -10,11 +10,11 @@ Image processing
 - Author: Qianyao Xu
 - Institution: Trinity College Dublin
 
-This project implements Chambolle's total variation (TV) denoising algorithm for grayscale images and investigates a noise-adaptive regularization method.
+This project implements Chambolle's total variation (TV) denoising algorithm for grayscale images and investigates a noise-adaptive regularisation method.
 
-The baseline uses a fixed regularization parameter, while the modified method estimates the noise level from the noisy image and adjusts the regularization parameter accordingly.
+The baseline uses a fixed regularisation parameter, while the modified method estimates the noise level from the noisy image and adjusts the regularisation parameter accordingly.
 
-The aim is to investigate whether adaptive regularization can improve denoising performance under different noise conditions.
+The aim is to investigate whether adaptive regularisation can improve denoising performance under different noise conditions.
 
 ## 2. Repository Structure
 
@@ -143,14 +143,14 @@ Both methods remove noise but tend to oversmooth high-frequency textures.
 
 The oracle variant uses the known synthetic noise level instead of the estimated noise level.
 
-The results suggest that noise estimation error is not the only reason for the poor performance at high noise levels. The adaptive regularization rule may also contribute to this limitation.
+The results suggest that noise estimation error is not the only reason for the poor performance at high noise levels. The adaptive regularisation rule may also contribute to this limitation.
 
 ### Limitations
 
 - Only synthetic grayscale images and Gaussian noise are considered.
 - The adaptive method does not consistently outperform the baseline.
 - TV denoising may remove fine image textures.
-- The adaptive method is sensitive to regularization parameter selection.
+- The adaptive method is sensitive to regularisation parameter selection.
 
 ## 7. References
 
